@@ -6,7 +6,7 @@
       </v-card-title>
     </v-card>
 
-    <v-timeline align="start" class="mt-8">
+    <v-timeline text-align="start" class="mt-8">
       <!-- 1. Fundación y Construcción (2005) --><v-timeline-item
         dot-color="#A62C2B" fill-dot size="large"
       >

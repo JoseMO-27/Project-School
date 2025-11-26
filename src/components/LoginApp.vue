@@ -6,21 +6,26 @@
       <h1 class="login-title" style="text-align: center;">Iniciar sesión</h1>
       <p class="login-subtitle" style="text-align: center;">Accede a tu cuenta institucional</p>
 
+      <!-- Aquí he añadido una alerta básica para mostrar el error de autenticación -->
+      <div v-if="loginError" class="error-message">
+        {{ loginError }}
+      </div>
+
       <form class="login-form" @submit.prevent="goToDashboard">
         <div class="form-group">
-          <label for="email">Correo electrónico</label>
+          <label for="email">Usuario</label>
           <input
-            type="email"
+            type="text"
             id="email"
-            v-model="email"
-            placeholder="usuario@school.edu"
+            v-model="username"
+            placeholder="usuario1234"
           />
         </div>
 
         <div class="form-group">
           <label for="password">Contraseña</label>
           <input
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             id="password"
             v-model="password"
             placeholder="••••••••"
@@ -29,7 +34,7 @@
 
         <div class="options-row">
           <label class="show-password">
-            <input type="checkbox" v-model="showPassword" @change="togglePassword" />
+            <input type="checkbox" v-model="showPassword" />
             Mostrar contraseña
           </label>
           <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
@@ -38,7 +43,7 @@
         <button type="submit" class="login-button">Iniciar sesión</button>
 
         <div class="register-text">
-          <p>¿Eres nuevo? <a href="#">Crea una cuenta</a></p>
+          <p>¿Eres nuevo? <a href="@/components/UsuarioApp.vue">Crea una cuenta</a></p>
         </div>
       </form>
     </div>
@@ -46,28 +51,54 @@
 </template>
 
 <script>
+import authservice from '@/services/authservice';
+// Importamos useAuthStore para Pinia, aunque el componente no lo estaba usando, lo dejo aquí por si lo necesita en el futuro.
+// import { useAuthStore } from '@/store/auth'; 
+
 export default {
   name: "LoginApp",
   data() {
     return {
-      email: "",
+      username: "", // Cambiado de 'email' a 'username' para coincidir con la lógica del servicio
       password: "",
       showPassword: false,
+      loginError: null, // Nuevo estado para mostrar errores
     };
   },
   methods: {
-    goToDashboard() {
-      this.$router.push("dashboard");
+    async goToDashboard() {
+      // 1. **VALIDACIÓN DE CAMPOS VACÍOS (SOLUCIÓN AL PROBLEMA 1)**
+      if (!this.username || !this.password) {
+        this.loginError = "Debe llenar todos los campos vacíos para continuar.";
+        return; // Detiene la ejecución si los campos están vacíos
+      }
+
+      this.loginError = null; // Limpiar errores anteriores
+
+      // 2. Intentar autenticar
+      try {
+        const loginResult = await authservice.login(this.username, this.password);
+        
+        if (loginResult.success) {
+          // Si usa Pinia: const authStore = useAuthStore(); authStore.setUser(loginResult.user);
+          this.$router.push("dashboard");
+        } else {
+          // Mostrar error de credenciales incorrectas
+          this.loginError = loginResult.message || 'Error de autenticación.';
+        }
+      } catch (error) {
+        console.error("Error en el login:", error);
+        this.loginError = "Error inesperado al intentar iniciar sesión.";
+      }
     },
-    togglePassword() {
-      const input = document.getElementById("password");
-      input.type = this.showPassword ? "text" : "password";
-    },
+    // El método togglePassword ya no es necesario si el input type está vinculado a showPassword
   },
 };
 </script>
 
 <style scoped>
+/* Estilos originales mantenidos */
+
 /* === Fondo general === */
 .login-container {
   display: flex;
@@ -93,6 +124,19 @@ export default {
     0 0 0 1px rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
+
+/* Nuevo estilo para mensaje de error */
+.error-message {
+  background-color: #d32f2f;
+  color: white;
+  padding: 10px;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 500;
+  border: 1px solid #c62828;
+}
+
 
 /* === Escudo detrás del formulario === */
 .background-logo {

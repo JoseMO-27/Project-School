@@ -16,10 +16,7 @@
         </v-toolbar-title>
         
         <v-spacer></v-spacer>
-        <v-btn text color="white" class="text-capitalize">
-          <v-icon left>mdi-plus</v-icon>
-          Nuevo Anuncio
-        </v-btn>
+    
       </v-toolbar>
 
       <v-card-text class="pa-6">
